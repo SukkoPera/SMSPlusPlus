@@ -291,8 +291,6 @@ enum SmsButton {
 
 /* Button combos to perform other actions. These are to be considered in
  * addition to TRIGGER_COMBO.
- *
- * Note that we cannot detect certain buttons on some platforms
  */
 #define COMBO_RESET (MD_BTN_A | MD_BTN_C)
 
@@ -400,13 +398,13 @@ unsigned long mode_last_changed_time;
 void save_mode () {
 #ifdef MODE_ROM_OFFSET
   if (mode_last_changed_time > 0 && millis () - mode_last_changed_time >= MODE_SAVE_DELAY) {
-    debug ("Saving video mode to EEPROM: ");
+    debug (F("Saving video mode to EEPROM: "));
     debugln (current_mode);
     byte saved_mode = EEPROM.read (MODE_ROM_OFFSET);
     if (current_mode != saved_mode) {
       EEPROM.write (MODE_ROM_OFFSET, static_cast<byte> (current_mode));
     } else {
-      debugln ("Mode unchanged, not saving");
+      debugln (F("Mode unchanged, not saving"));
     }
     mode_last_changed_time = 0;    // Don't save again
 
@@ -500,14 +498,14 @@ void handle_reset_button () {
     else if (pressed_now == HIGH && pressed_before) {
       // Button released
       if (hold_cycles == 0) {
-        debugln ("Reset button pushed for a short time");
+        debugln (F("Reset button pushed for a short time"));
         reset_console ();
     }
   } else {
       // Button has not just been pressed/released
       if (pressed_now == LOW && millis () % last_pressed >= LONGPRESS_LEN * (hold_cycles + 1)) {
         // Reset has been hold for a while
-        debugln ("Reset button hold");
+        debugln (F("Reset button hold"));
         ++hold_cycles;
         next_mode ();
       }
@@ -541,14 +539,14 @@ void handle_pause_button () {
     else if (pressed_now == HIGH && pressed_before) {
       // Button released
       if (hold_cycles == 0) {
-        debugln ("Pause button pushed for a short time");
+        debugln (F("Pause button pushed for a short time"));
         pause_console ();
     }
   } else {
       // Button has not just been pressed/released
       if (pressed_now == LOW && millis () % last_pressed >= LONGPRESS_LEN * (hold_cycles + 1)) {
         // Reset has been hold for a while
-        debugln ("Pause button hold");
+        debugln (F("Pause button held"));
         ++hold_cycles;
         next_mode ();
       }
@@ -561,7 +559,7 @@ void handle_pause_button () {
 
 
 void reset_console () {
-	debugln ("Resetting console");
+	debugln (F("Resetting console"));
 
 	digitalWrite (RESET_OUT_PIN, LOW);
 	delay (RESET_LEN);
@@ -569,7 +567,7 @@ void reset_console () {
 }
 
 void pause_console () {
-	debugln ("Pausing console");
+	debugln (F("Pausing console"));
 
 	digitalWrite (PAUSE_OUT_PIN, LOW);
 	delay (RESET_LEN);
@@ -709,7 +707,7 @@ void setup_traces () {
  */
 inline word read_md_pad () {
 	static word pad_status = 0x0000;
-	byte port = 0xFF;
+	byte port;
 
 	// Start with select line high for a while
 	setSelect (HIGH);
@@ -766,32 +764,32 @@ inline word read_md_pad () {
 	pad_status &= 0x0FFF;
 
 #ifdef DEBUG_PAD
-	debug ("Pressed: ");
+	debug (F("Pressed: "));
 	if (pad_status & MD_BTN_UP)
-		debug ("Up ");
+		debug (F("Up "));
 	if (pad_status & MD_BTN_DOWN)
-		debug ("Down ");
+		debug (F("Down "));
 	if (pad_status & MD_BTN_LEFT)
-		debug ("Left ");
+		debug (F("Left "));
 	if (pad_status & MD_BTN_RIGHT)
-		debug ("Right ");
+		debug (F("Right "));
 	if (pad_status & MD_BTN_A)
-		debug ("A ");
+		debug (F("A "));
 	if (pad_status & MD_BTN_B)
-		debug ("B ");
+		debug (F("B "));
 	if (pad_status & MD_BTN_C)
-		debug ("C ");
+		debug (F("C "));
 	if (pad_status & MD_BTN_X)
-		debug ("X ");
+		debug (F("X "));
 	if (pad_status & MD_BTN_Y)
-		debug ("Y ");
+		debug (F("Y "));
 	if (pad_status & MD_BTN_Z)
-		debug ("Z ");
+		debug (F("Z "));
 	if (pad_status & MD_BTN_MODE)
-		debug ("Mode ");
+		debug (F("Mode "));
 	if (pad_status & MD_BTN_START)
-		debug ("Start ");
-	debugln ("");
+		debug (F("Start "));
+	debugln ();
 #endif
 
 	return pad_status;
@@ -815,22 +813,22 @@ inline byte read_sms_pad () {
 	pad_status &= 0x7F;
 
 #ifdef DEBUG_PAD
-	debug ("Pressed: ");
+	debug (F("Pressed: "));
 	if (pad_status & SMS_BTN_UP)
-		debug ("Up ");
+		debug (F("Up "));
 	if (pad_status & SMS_BTN_DOWN)
-		debug ("Down ");
+		debug (F("Down "));
 	if (pad_status & SMS_BTN_LEFT)
-		debug ("Left ");
+		debug (F("Left "));
 	if (pad_status & SMS_BTN_RIGHT)
-		debug ("Right ");
+		debug (F("Right "));
 	if (pad_status & SMS_BTN_B1)
-		debug ("B1 ");
+		debug (F("B1 "));
 	if (pad_status & SMS_BTN_B2)
-		debug ("B2 ");
+		debug (F("B2 "));
 	if (pad_status & SMS_BTN_TH)
-		debug ("TH ");
-	debugln ("");
+		debug (F("TH "));
+	debugln ();
 #endif
 
 	return pad_status;
@@ -912,16 +910,15 @@ void handle_pad () {
 
 			if ((pad_status & COMBO_TRIGGER) == COMBO_TRIGGER && millis () - last_combo_time > IGNORE_COMBO_MS) {
 				if ((pad_status & COMBO_RESET) == COMBO_RESET) {
-					debugln ("Reset combo detected");
+					debugln (F("Reset combo detected"));
 					reset_console ();
-					//pad_status = 0;     // Avoid continuous reset (pad_status might keep the last value during reset!)
 					last_combo_time = millis ();
 				} else if ((pad_status & COMBO_50HZ) == COMBO_50HZ) {
-					debugln ("50 Hz combo detected");
+					debugln (F("50 Hz combo detected"));
 					set_mode (VID_50HZ);
 					last_combo_time = millis ();
 				} else if ((pad_status & COMBO_60HZ) == COMBO_60HZ) {
-					debugln ("60 Hz combo detected");
+					debugln (F("60 Hz combo detected"));
 					set_mode (VID_60HZ);
 					last_combo_time = millis ();
 				}
@@ -944,7 +941,7 @@ void setup () {
 	Serial.begin (9600);
 #endif
 
-	debugln ("Starting up...");
+	debugln (F("Starting up..."));
 
 	// Enable reset (active low)
 	pinMode (RESET_OUT_PIN, OUTPUT);
@@ -977,7 +974,7 @@ void setup () {
 
 #ifdef MODE_ROM_OFFSET
 	byte tmp = EEPROM.read (MODE_ROM_OFFSET);
-	debug ("Loaded video mode from EEPROM: ");
+	debug (F("Loaded video mode from EEPROM: "));
 	debugln (tmp);
 	if (tmp < VID_MODES_NO) {
 		// Palette EEPROM value is good
