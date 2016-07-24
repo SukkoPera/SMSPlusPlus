@@ -349,11 +349,11 @@ enum SmsButton {
  */
 #define LONGPRESS_LEN 700
 
-// Debounce duration for the reset button
+// Debounce duration for the reset/pause button
 #define DEBOUNCE_MS 20
 
-// Duration of the reset pulse (milliseconds)
-#define RESET_LEN 350
+// Duration of the reset/pause pulse (milliseconds)
+#define PULSE_LEN 250
 
 // Microseconds
 #define SIXMD_BTN_PULSE_INTERVAL 30
@@ -562,7 +562,7 @@ void reset_console () {
 	debugln (F("Resetting console"));
 
 	digitalWrite (RESET_OUT_PIN, LOW);
-	delay (RESET_LEN);
+	delay (PULSE_LEN);
 	digitalWrite (RESET_OUT_PIN, HIGH);
 }
 
@@ -570,7 +570,7 @@ void pause_console () {
 	debugln (F("Pausing console"));
 
 	digitalWrite (PAUSE_OUT_PIN, LOW);
-	delay (RESET_LEN);
+	delay (PULSE_LEN);
 	digitalWrite (PAUSE_OUT_PIN, HIGH);
 }
 
