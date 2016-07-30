@@ -44,7 +44,7 @@
 //~ #endif
 
 
-#if defined __AVR_ATtinyX61__
+#if defined (__AVR_ATtinyX61__)
 /*
  * On ATtinyX61's all features are supported. We even read all buttons with a
  * single instruction.
@@ -79,7 +79,7 @@
 	#define MODE_LED_B_PIN 4
 #endif
 
-#elif defined __AVR_ATtinyX313__
+#elif defined (__AVR_ATtinyX313__)
 /*
  * On ATtinyX13's all features are supported. We even read all buttons with a
  * single instruction.
@@ -113,93 +113,47 @@
 		//~ #define MODE_LED_B_PIN 12
 //~ #endif
 
-#elif defined __AVR_ATmega328__ || defined __AVR_ATmega328P__ || defined __AVR_ATmega168__
+#elif defined (__AVR_ATmega328__) || defined (__AVR_ATmega328P__) || defined (__AVR_ATmega168__)
 /*
- * Arduino Uno/Nano/Micro/Whatever, use a convenience #define till we come up
- * with something better
+ * Arduino Uno/Nano/Standalone, but these have different configurations, so the
+ * board type must be defined MANUALLY
  */
-#define ARDUINO328
+
+#define ARDUINO_UNO
+//~ #define ARDUINO_NANO
+//~ #define ARDUINO_STANDALONE
+
+#if defined (ARDUINO_UNO)
+
+#warning "Compiling for Arduino Uno"
 
 /*
-Multiplexer Select
-Led Red
-Led Green
-Reset In
-Pause In
-                                    ,-----_-----.
-                        [Reset] PC6 |1     A5 28| PC5
-               Pad Port Trace 1 PD0 |2   0 A4 27| PC4
-               Pad Port Trace 2 PD1 |3   1 A3 26| PC3
-               Pad Port Trace 3 PD2 |4   2 A2 25| PC2 Video Mode Out
-               Pad Port Trace 4 PD3 |5   3 A1 24| PC1 Pause Out
-               Pad Port Trace 6 PD4 |6   4 A0 23| PC0 Reset Out
-                                +5V |7        22| GND
-                                GND |8        21|
- Pad Port Pin 9 (TR - Button 2) PB6 |9        20| +5V
-                                PB7 |10    13 19| PB5 Pad Port Pin 7 (TH - Light Sensor - MD Select) [+ Built-in LED]
-               Pad Port Trace 7 PD5 |11  5 12 18| PB4 Pad Port Pin 6 (TL - Button 1/Trigger)
-               Pad Port Trace 9 PD6 |12  6 11 17| PB3 Pad Port Pin 4 (Right)
-                                PD7 |13  7 10 16| PB2 Pad Port Pin 3 (Left)
-            Pad Port Pin 1 (Up) PB0 |14  8  9 15| PB1 Pad Port Pin 2 (Down)
-                                    `-----------'
-
-
-
-
-					+----[PWR]-------------------| USB |--+
-					|                            +-----+  |
-					|         GND/RST2  [ ][ ]            |
-					|       MOSI2/SCK2  [ ][ ]  A5/SCL[ ] |
-					|          5V/MISO2 [ ][ ]  A4/SDA[ ] |
-					|                             AREF[ ] |
-					|                              GND[ ] |
-					| [ ]N/C                    SCK/13[X] | PB5 Pad Port Pin 9 (SMS: TR/B2 - MD: C/Start)
-					| [ ]IOREF                 MISO/12[X] | PB4 Pad Port Pin 6 (SMS: TL/B1/Trigger - MD: B/A)
-					| [ ]RST                   MOSI/11[X]~| PB3 Pad Port Pin 4 (SMS: Right - MD: Right/Mode)
-					| [ ]3V3    +---+               10[X]~| PB2 Pad Port Pin 3 (SMS: Left - MD: Left/X)
-			    +5V | [X]5v    -| A |-               9[X]~| PB1 Pad Port Pin 2 (SMS: Down - MD: Down/Y)
-			    GND | [X]GND   -| R |-               8[X] | PB0 Pad Port Pin 1 (SMS: Up - MD: Up/Z)
-					| [ ]GND   -| D |-                    |
-					| [ ]Vin   -| U |-               7[X] | PD7 Pad Port Pin 7 (SMS: TH/Light Sensor - MD: Select)
-					|          -| I |-               6[X]~| Pad Port Trace 7
-   Pad Port Trace 1 | [X]A0    -| N |-               5[X]~| Pause In
-   Pad Port Trace 2 | [X]A1    -| O |-               4[X] | Pause Out
-   Pad Port Trace 3 | [X]A2     +---+           INT1/3[X]~| Reset Out
-   Pad Port Trace 4 | [X]A3                     INT0/2[X] | Video Mode/Led Red
-   Pad Port Trace 6 | [X]A4/SDA  RST SCK MISO     TX>1[ ] |
-   Pad Port Trace 9 | [X]A5/SCL  [ ] [ ] [ ]      RX<0[ ] |
-				    |            [ ] [ ] [ ]              |
-				    |  UNO_R3    GND MOSI 5V  ____________/
-				    \_______________________/
-
-
-                                    THE FOLLOWING ARE WRONG!
-
- * ------------
- * Arduino Nano
- * ------------
- *                                   +-----+
- *                      +------------| USB |------------+
- *                      |            +-----+            |
- * 	     (Built-in LED) | [ ]D13/SCK        MISO/D12[ ] |
- *                      | [ ]3.3V           MOSI/D11[X]~| LED Blue
- *                      | [ ]V.ref     ___    SS/D10[X]~| LED Green
- *       Pad Port Pin 1 | [X]A0       / N \       D9[X]~| LED Red
- *       Pad Port Pin 2 | [X]A1      /  A  \      D8[ ] |
- *            Reset Out | [X]A2      \  N  /      D7[ ] |
- *             Reset In | [X]A3       \_0_/       D6[X]~| Pad Port Pin 9
- *   JP3/4 (Video Mode) | [X]A4/SDA               D5[X]~| Pad Port Pin 6
- *     JP1/2 (Language) | [X]A5/SCL               D4[X] | Pad Port Pin 4
- *                      | [ ]A6              INT1/D3[X]~| Pad Port Pin 3
- *                      | [ ]A7              INT0/D2[X] | Pad Port Pin 7
- *                  +5V | [X]5V                  GND[X] | GND
- *                      | [ ]RST                 RST[ ] |
- *                      | [ ]GND   5V MOSI GND   TX1[ ] |
- *                      | [ ]Vin   [ ] [ ] [ ]   RX0[ ] |
- * 	                    |          [ ] [ ] [ ]          |
- *                      |          MISO SCK RST         |
- *                      | NANO-V3                       |
- *                      +-------------------------------+
+ *
+ *                      +----[PWR]-------------------| USB |--+
+ *                      |                            +-----+  |
+ *                      |         GND/RST2  [ ][ ]            |
+ *                      |       MOSI2/SCK2  [ ][ ]  A5/SCL[ ] |
+ *                      |          5V/MISO2 [ ][ ]  A4/SDA[ ] |
+ *                      |                             AREF[ ] |
+ *                      |                              GND[ ] |
+ *                      | [ ]N/C                    SCK/13[X] | PB5 Pad Port Pin 9 (SMS: TR/B2 - MD: C/Start)
+ *                      | [ ]IOREF                 MISO/12[X] | PB4 Pad Port Pin 6 (SMS: TL/B1/Trigger - MD: B/A)
+ *                      | [ ]RST                   MOSI/11[X]~| PB3 Pad Port Pin 4 (SMS: Right - MD: Right/Mode)
+ *                      | [ ]3V3    +---+               10[X]~| PB2 Pad Port Pin 3 (SMS: Left - MD: Left/X)
+ *                  +5V | [X]5v    -| A |-               9[X]~| PB1 Pad Port Pin 2 (SMS: Down - MD: Down/Y)
+ *                  GND | [X]GND   -| R |-               8[X] | PB0 Pad Port Pin 1 (SMS: Up - MD: Up/Z)
+ *                      | [ ]GND   -| D |-                    |
+ *                      | [ ]Vin   -| U |-               7[X] | PD7 Pad Port Pin 7 (SMS: TH/Light Sensor - MD: Select)
+ *                      |          -| I |-               6[X]~| Pad Port Trace 7
+ * Pad Port Trace 1 PC0 | [X]A0    -| N |-               5[X]~| Pause In
+ * Pad Port Trace 2 PC1 | [X]A1    -| O |-               4[X] | Pause Out
+ * Pad Port Trace 3 PC2 | [X]A2     +---+           INT1/3[X]~| Reset Out
+ * Pad Port Trace 4 PC3 | [X]A3                     INT0/2[X] | Video Mode
+ * Pad Port Trace 6 PC4 | [X]A4/SDA  RST SCK MISO     TX>1[ ] | (Led Green)
+ * Pad Port Trace 9 PC5 | [X]A5/SCL  [ ] [ ] [ ]      RX<0[ ] | (Led Red)
+ *                      |            [ ] [ ] [ ]              |
+ *                      |  UNO_R3    GND MOSI 5V  ____________/
+ *                      \_______________________/
  */
 
 //~ #define RESET_IN_PIN A3
@@ -207,8 +161,8 @@ Pause In
 #define PAUSE_OUT_PIN 4
 #define RESET_OUT_PIN 3
 #define VIDEOMODE_PIN 2
-//~ #define MODE_LED_R_PIN 9
-//~ #define MODE_LED_G_PIN 10
+//~ #define MODE_LED_R_PIN 0
+//~ #define MODE_LED_G_PIN 1
 //~ #define PAD_LED_PIN LED_BUILTIN
 
 // Controller port
@@ -235,8 +189,126 @@ Pause In
 #define PDREG_TRACE7_BIT DDD6
 #define POREG_TRACE7 PORTD
 
+#if !defined (MODE_LED_R_PIN) && !defined (MODE_LED_G_PIN)
+	#define ENABLE_SERIAL_DEBUG
+#else
+	#warning "Serial debugging disabled"
+#endif
+//~ #define DEBUG_PAD
+
+#elif defined (ARDUINO_NANO)
+/*
+ * This configuration is almost identical to that of the Uno, except that we use
+ * the Nano extra pins A6 and A7 to emulate digital inputs to sample the Pause
+ * and Reset buttons. This frees up pin 5, which we can then use as Controller
+ * Type Out.
+ *
+ *                                               +-----+
+ *                                  +------------| USB |------------+
+ *                                  |            +-----+            |
+ *                   Pad Port Pin 9 | [X]D13/SCK        MISO/D12[X] | Pad Port Pin 6
+ *                                  | [ ]3.3V           MOSI/D11[X]~| Pad Port Pin 4
+ *                                  | [ ]V.ref     ___    SS/D10[X]~| Pad Port Pin 3
+ *                 Pad Port Trace 1 | [X]A0       / N \       D9[X]~| Pad Port Pin 2
+ *                 Pad Port Trace 2 | [X]A1      /  A  \      D8[X] | Pad Port Pin 1
+ *                 Pad Port Trace 3 | [X]A2      \  N  /      D7[X] | Pad Port Pin 7
+ *                 Pad Port Trace 4 | [X]A3       \_0_/       D6[X]~| Pad Port Trace 7
+ *                 Pad Port Trace 6 | [X]A4/SDA               D5[X]~| Controller Type Out
+ *                 Pad Port Trace 9 | [X]A5/SCL               D4[X] | Pause Out
+ *                         Reset In | [X]A6              INT1/D3[X]~| Reset Out
+ *                         Pause In | [X]A7              INT0/D2[X] | Video Mode
+ *                              +5V | [X]5V                  GND[X] | GND
+ *                                  | [ ]RST                 RST[ ] |
+ *                                  | [ ]GND   5V MOSI GND   TX1[ ] |
+ *                                  | [ ]Vin   [ ] [ ] [ ]   RX0[ ] |
+ *                                  |          [ ] [ ] [ ]          |
+ *                                  |          MISO SCK RST         |
+ *                                  | NANO-V3                       |
+ *                                  +-------------------------------+
+ */
+
+//~ #define RESET_IN_PIN A3
+#define PAUSE_IN_PIN 5
+#define PAUSE_OUT_PIN 4
+#define RESET_OUT_PIN 3
+#define VIDEOMODE_PIN 2
+//~ #define MODE_LED_R_PIN 9
+//~ #define MODE_LED_G_PIN 10
+//~ #define PAD_LED_PIN LED_BUILTIN
+
+// Controller port
+#define PDREG_PAD_PORT DDRB
+#define PDREG_PAD_BITS ((1 << DDB5) | (1 << DDB4) | (1 << DDB3) | (1 << DDB2) | (1 << DDB1) | (1 << DDB0))
+#define PIREG_PAD PINB
+#define POREG_PAD PORTB
+
+// Select signal
+#define PDREG_SELECT_PORT DDRD
+#define PDREG_SELECT_BIT DDD7
+#define POREG_SELECT PORTD
+
+// Select signal is on a different port
+#define PIREG_SELECT PIND
+
+// Traces port
+#define PDREG_TRACES_PORT DDRC
+#define PDREG_TRACES_BITS ((1 << DDC5) | (1 << DDC4) | (1 << DDC3) | (1 << DDC2) | (1 << DDC1) | (1 << DDC0))
+#define POREG_TRACES PORTC
+
+// Select trace is on a different port
+#define PDREG_TRACE7_PORT DDRD
+#define PDREG_TRACE7_BIT DDD6
+#define POREG_TRACE7 PORTD
+
 #define ENABLE_SERIAL_DEBUG
 //~ #define DEBUG_PAD
+
+#elif defined (ARDUINO_STANDALONE)
+/*
+ *                                                    ,-----_-----.
+ *                                                PC6 |1     A5 28| PC5 Led Green
+ *                               Pad Port Trace 1 PD0 |2   0 A4 27| PC4 Led Red
+ *                               Pad Port Trace 2 PD1 |3   1 A3 26| PC3 Pause Out
+ *                               Pad Port Trace 3 PD2 |4   2 A2 25| PC2 Pause In
+ *                               Pad Port Trace 4 PD3 |5   3 A1 24| PC1 Reset Out
+ *                               Pad Port Trace 6 PD4 |6   4 A0 23| PC0 Reset In
+ *                                                +5V |7        22| GND
+ *                                                GND |8        21|
+ * Pad Port Pin 7 (TH - Light Sensor - MD Select) PB6 |9        20| +5V
+ *                            Controller Type Out PB7 |10    13 19| PB5 Pad Port Pin 9 (TR - Button 2)
+ *                               Pad Port Trace 9 PD5 |11  5 12 18| PB4 Pad Port Pin 6 (TL - Button 1/Trigger)
+ *                               Pad Port Trace 7 PD6 |12  6 11 17| PB3 Pad Port Pin 4 (Right)
+ *                                 Video Mode Out PD7 |13  7 10 16| PB2 Pad Port Pin 3 (Left)
+ *                            Pad Port Pin 1 (Up) PB0 |14  8  9 15| PB1 Pad Port Pin 2 (Down)
+ *                                                    `-----------'
+ */
+
+#define VIDEOMODE_PIN 7
+#define PAUSE_OUT_PIN A3
+#define PAUSE_IN_PIN A2
+#define RESET_OUT_PIN A1
+#define RESET_IN_PIN A0
+#define MODE_LED_R_PIN A4
+#define MODE_LED_G_PIN A5
+//~ #define PAD_LED_PIN LED_BUILTIN
+
+// Controller port
+#define PDREG_PAD_PORT DDRB
+#define PDREG_PAD_BITS ((1 << DDB5) | (1 << DDB4) | (1 << DDB3) | (1 << DDB2) | (1 << DDB1) | (1 << DDB0))
+#define PIREG_PAD PINB
+#define POREG_PAD PORTB
+
+// Select signal
+#define PDREG_SELECT_PORT DDRB
+#define PDREG_SELECT_BIT DDB6
+#define POREG_SELECT PORTB
+
+// Traces port
+#define PDREG_TRACES_PORT DDRC
+#define PDREG_TRACES_BITS ((1 << DDD6) | (1 << DDD5) | (1 << DDD4) | (1 << DDD3) | (1 << DDD2) | (1 << DDD1) | (1 << DDD0))
+#define POREG_TRACES PORTC
+
+#endif	// ARDUINO_xxxx
 
 #else
 	#error "Unsupported platform!"
@@ -339,10 +411,17 @@ enum SmsButton {
  * does NOT disable the RGB led, it can be used together with it, provided that
  * you have a free pin.
  *
- * Basically, the single led is blinked 1-3 times according to which mode is set
- * (1 is EUR, see enum VideoMode below).
+ * Basically, the single led is blinked 1-2 times according to which mode is set
+ * (1 is 50 Hz, see enum VideoMode below).
  */
 //#define MODE_LED_SINGLE_PIN 3
+
+/* Reset the console when the pause button on the console itself is pressed.
+ * This might be useful on the SMS2, since it has no RESET button. Now that you
+ * can trigger PAUSE from your controller, the PAUSE button on the console is
+ * pretty useless, isn't it?
+ */
+#define RESET_ON_PAUSE
 
 /* Presses of the reset button longer than this amount of milliseconds will
  * switch to the next mode, shorter presses will reset the console.
@@ -364,13 +443,13 @@ enum SmsButton {
 
 
 #ifdef MODE_ROM_OFFSET
-  #include <EEPROM.h>
+	#include <EEPROM.h>
 #endif
 
 enum VideoMode {
-  VID_50HZ,
-  VID_60HZ,
-  VID_MODES_NO // Leave at end
+	VID_50HZ,
+	VID_60HZ,
+	VID_MODES_NO // Leave at end
 };
 
 enum PadType {
@@ -394,166 +473,199 @@ unsigned long mode_last_changed_time;
 	#define debugln(...)
 #endif
 
+/* These functions set the RESET line to the desired state. Note that RESET is
+ * an active-low signal.
+ *
+ * We drive the RESET line emulating an open-collector output.
+ */
+#ifdef RESET_OUT_PIN
+inline void enableReset () {
+	/* No explicit setting to LOW is needed, pins are LOW by default when first
+	 * set as OUTPUTs.
+	 */
+	pinMode (RESET_OUT_PIN, OUTPUT);
+}
+
+inline void disableReset () {
+	/* Switch to INPUT, pin will go to HI-Z and the pull-up resistor we're
+	 * soldered to will bring the line high
+	 */
+	pinMode (RESET_OUT_PIN, INPUT);
+}
+#endif
+
+/* Ditto for the PAUSE line
+ */
+#ifdef PAUSE_OUT_PIN
+inline void enablePause () {
+	pinMode (PAUSE_OUT_PIN, OUTPUT);
+}
+
+inline void disablePause () {
+	pinMode (PAUSE_OUT_PIN, INPUT);
+}
+#endif
+
 
 void save_mode () {
 #ifdef MODE_ROM_OFFSET
-  if (mode_last_changed_time > 0 && millis () - mode_last_changed_time >= MODE_SAVE_DELAY) {
-    debug (F("Saving video mode to EEPROM: "));
-    debugln (current_mode);
-    byte saved_mode = EEPROM.read (MODE_ROM_OFFSET);
-    if (current_mode != saved_mode) {
-      EEPROM.write (MODE_ROM_OFFSET, static_cast<byte> (current_mode));
-    } else {
-      debugln (F("Mode unchanged, not saving"));
-    }
-    mode_last_changed_time = 0;    // Don't save again
+	if (mode_last_changed_time > 0 && millis () - mode_last_changed_time >= MODE_SAVE_DELAY) {
+		debug (F("Saving video mode to EEPROM: "));
+		debugln (current_mode);
+		byte saved_mode = EEPROM.read (MODE_ROM_OFFSET);
+		if (current_mode != saved_mode) {
+			EEPROM.write (MODE_ROM_OFFSET, static_cast<byte> (current_mode));
+		} else {
+			debugln (F("Mode unchanged, not saving"));
+		}
+		mode_last_changed_time = 0;    // Don't save again
 
-    // Blink led to tell the user that mode was saved
+		// Blink led to tell the user that mode was saved
 #ifdef ENABLE_MODE_LED_RGB
-    byte c = 0;
+		byte c = 0;
 
 #ifdef RGB_LED_COMMON_ANODE
-    c = 255 - c;
+		c = 255 - c;
 #endif
 
 #ifdef MODE_LED_R_PIN
-    analogWrite (MODE_LED_R_PIN, c);
+		digitalWrite (MODE_LED_R_PIN, c);
 #endif
 
 #ifdef MODE_LED_G_PIN
-    analogWrite (MODE_LED_G_PIN, c);
+		digitalWrite (MODE_LED_G_PIN, c);
 #endif
 
-#ifdef MODE_LED_B_PIN
-    analogWrite (MODE_LED_B_PIN, c);
-#endif
+		// Keep off for a bit
+		delay (200);
 
-    // Keep off for a bit
-    delay (200);
-
-    // Turn led back on
-    update_mode_leds ();
+		// Turn led back on
+		update_mode_leds ();
 #endif  // ENABLE_MODE_LED_RGB
 
 #ifdef MODE_LED_SINGLE_PIN
-    // Make one long flash
-    digitalWrite (MODE_LED_SINGLE_PIN, LOW);
-    delay (500);
-    digitalWrite (MODE_LED_SINGLE_PIN, HIGH);
+		// Make one long flash
+		digitalWrite (MODE_LED_SINGLE_PIN, LOW);
+		delay (500);
+		digitalWrite (MODE_LED_SINGLE_PIN, HIGH);
 #endif
-  }
+	}
 #endif  // MODE_ROM_OFFSET
 }
 
 void set_mode (VideoMode m) {
-  switch (m) {
-    default:
-    case VID_50HZ:
-      digitalWrite (VIDEOMODE_PIN, HIGH);    // PAL 50Hz
-      break;
-    case VID_60HZ:
-      digitalWrite (VIDEOMODE_PIN, LOW);	// PAL 60Hz
-  }
+	switch (m) {
+		default:
+		case VID_50HZ:
+			digitalWrite (VIDEOMODE_PIN, HIGH);    // PAL 50Hz
+			break;
+		case VID_60HZ:
+			digitalWrite (VIDEOMODE_PIN, LOW);	// PAL 60Hz
+	}
 
-  current_mode = m;
-  //~ update_mode_leds ();
+	current_mode = m;
+	//~ update_mode_leds ();
 
-  mode_last_changed_time = millis ();
+	mode_last_changed_time = millis ();
 }
 
 void change_mode (int increment) {
-  // This also loops in [0, MODES_NO) backwards
-  VideoMode new_mode = static_cast<VideoMode> ((current_mode + increment + VID_MODES_NO) % VID_MODES_NO);
-  set_mode (new_mode);
+	// This also loops in [0, MODES_NO) backwards
+	VideoMode new_mode = static_cast<VideoMode> ((current_mode + increment + VID_MODES_NO) % VID_MODES_NO);
+	set_mode (new_mode);
 }
 
 void next_mode () {
-  change_mode (+1);
+	change_mode (+1);
 }
 
 void prev_mode () {
-  change_mode (-1);
+	change_mode (-1);
 }
 
 // Reset is active low on SMS
 void handle_reset_button () {
 #ifdef RESET_IN_PIN
-  static byte debounce_level = LOW;
-  static bool pressed_before = false;
-  static long last_int = 0, last_pressed = 0;
-  static unsigned int hold_cycles = 0;
+	static byte debounce_level = LOW;
+	static bool pressed_before = false;
+	static long last_int = 0, last_pressed = 0;
+	static unsigned int hold_cycles = 0;
 
-  byte pressed_now = digitalRead (RESET_IN_PIN);
-  if (pressed_now != debounce_level) {
-    // Reset debouncing timer
-    last_int = millis ();
-    debounce_level = pressed_now;
-  } else if (millis () - last_int > DEBOUNCE_MS) {
-    // OK, button is stable, see if it has changed
-    if (pressed_now == LOW && !pressed_before) {
-      // Button just pressed
-      last_pressed = millis ();
-      hold_cycles = 0;
-    }
-    else if (pressed_now == HIGH && pressed_before) {
-      // Button released
-      if (hold_cycles == 0) {
-        debugln (F("Reset button pushed for a short time"));
-        reset_console ();
-    }
-  } else {
-      // Button has not just been pressed/released
-      if (pressed_now == LOW && millis () % last_pressed >= LONGPRESS_LEN * (hold_cycles + 1)) {
-        // Reset has been hold for a while
-        debugln (F("Reset button hold"));
-        ++hold_cycles;
-        next_mode ();
-      }
-    }
+	byte pressed_now = digitalRead (RESET_IN_PIN);
+	if (pressed_now != debounce_level) {
+		// Reset debouncing timer
+		last_int = millis ();
+		debounce_level = pressed_now;
+	} else if (millis () - last_int > DEBOUNCE_MS) {
+		// OK, button is stable, see if it has changed
+		if (pressed_now == LOW && !pressed_before) {
+			// Button just pressed
+			last_pressed = millis ();
+			hold_cycles = 0;
+		}
+		else if (pressed_now == HIGH && pressed_before) {
+			// Button released
+			if (hold_cycles == 0) {
+				debugln (F("Reset button pushed for a short time"));
+				reset_console ();
+		}
+	} else {
+			// Button has not just been pressed/released
+			if (pressed_now == LOW && millis () % last_pressed >= LONGPRESS_LEN * (hold_cycles + 1)) {
+				// Reset has been hold for a while
+				debugln (F("Reset button held"));
+				++hold_cycles;
+				next_mode ();
+			}
+		}
 
-    pressed_before = (pressed_now == LOW);
-  }
+		pressed_before = (pressed_now == LOW);
+	}
 #endif
 }
 
 // Pause is active low on SMS
 void handle_pause_button () {
 #ifdef PAUSE_IN_PIN
-  static byte debounce_level = LOW;
-  static bool pressed_before = false;
-  static long last_int = 0, last_pressed = 0;
-  static unsigned int hold_cycles = 0;
+	static byte debounce_level = LOW;
+	static bool pressed_before = false;
+	static long last_int = 0, last_pressed = 0;
+	static unsigned int hold_cycles = 0;
 
-  byte pressed_now = digitalRead (PAUSE_IN_PIN);
-  if (pressed_now != debounce_level) {
-    // Reset debouncing timer
-    last_int = millis ();
-    debounce_level = pressed_now;
-  } else if (millis () - last_int > DEBOUNCE_MS) {
-    // OK, button is stable, see if it has changed
-    if (pressed_now == LOW && !pressed_before) {
-      // Button just pressed
-      last_pressed = millis ();
-      hold_cycles = 0;
-    }
-    else if (pressed_now == HIGH && pressed_before) {
-      // Button released
-      if (hold_cycles == 0) {
-        debugln (F("Pause button pushed for a short time"));
-        pause_console ();
-    }
-  } else {
-      // Button has not just been pressed/released
-      if (pressed_now == LOW && millis () % last_pressed >= LONGPRESS_LEN * (hold_cycles + 1)) {
-        // Reset has been hold for a while
-        debugln (F("Pause button held"));
-        ++hold_cycles;
-        next_mode ();
-      }
-    }
+	byte pressed_now = digitalRead (PAUSE_IN_PIN);
+	if (pressed_now != debounce_level) {
+		// Reset debouncing timer
+		last_int = millis ();
+		debounce_level = pressed_now;
+	} else if (millis () - last_int > DEBOUNCE_MS) {
+		// OK, button is stable, see if it has changed
+		if (pressed_now == LOW && !pressed_before) {
+			// Button just pressed
+			last_pressed = millis ();
+			hold_cycles = 0;
+		}
+		else if (pressed_now == HIGH && pressed_before) {
+			// Button released
+			if (hold_cycles == 0) {
+				debugln (F("Pause button pushed for a short time"));
+#ifdef RESET_ON_PAUSE
+				reset_console ();
+#else
+				pause_console ();
+#endif
+		}
+	} else {
+			// Button has not just been pressed/released
+			if (pressed_now == LOW && millis () % last_pressed >= LONGPRESS_LEN * (hold_cycles + 1)) {
+				// Reset has been hold for a while
+				debugln (F("Pause button held"));
+				++hold_cycles;
+				next_mode ();
+			}
+		}
 
-    pressed_before = (pressed_now == LOW);
-  }
+		pressed_before = (pressed_now == LOW);
+	}
 #endif
 }
 
@@ -561,17 +673,17 @@ void handle_pause_button () {
 void reset_console () {
 	debugln (F("Resetting console"));
 
-	digitalWrite (RESET_OUT_PIN, LOW);
+	enableReset ();
 	delay (PULSE_LEN);
-	digitalWrite (RESET_OUT_PIN, HIGH);
+	disableReset ();
 }
 
 void pause_console () {
 	debugln (F("Pausing console"));
 
-	digitalWrite (PAUSE_OUT_PIN, LOW);
+	enablePause ();
 	delay (PULSE_LEN);
-	digitalWrite (PAUSE_OUT_PIN, HIGH);
+	disablePause ();
 }
 
 // Set the level of the SELECT signal of the first controller port
@@ -696,14 +808,14 @@ void setup_traces () {
 /******************************************************************************/
 
 /*
- * The basic idea here is to make up a byte where each bit represents the state
+ * The basic idea here is to make up a word where each bit represents the state
  * of a button, where 1 means pressed, for commodity's sake. The bit-button
  * mapping is defined in the MdButton enum above.
  *
  * To get consistent readings, we should really read all of the pad pins at
- * once, since they must be interpreted according to the value of the SELECT
- * signal. In order to do this we try to connect all pins to a single port
- * of our MCU.
+ * once, at least with the 6-button pad, since tour source states that only data
+ * read in 1.6 milli seconds from the first up-edge of Select is reliable.
+ * In order to do this we try to connect all pins to a single port of our MCU.
  */
 inline word read_md_pad () {
 	static word pad_status = 0x0000;
@@ -716,8 +828,8 @@ inline word read_md_pad () {
 	// We can read up, down, left, right, C & B
 	port = readPadPort ();
 	pad_status = (pad_status & 0xFFC0)
-	           | (~port & 0x3F);
-	           ;
+						 | (~port & 0x3F);
+						 ;
 
 	// Bring select line low 1st time
 	setSelect (LOW);
@@ -726,8 +838,8 @@ inline word read_md_pad () {
 	// We can read Start & A
 	port = readPadPort ();
 	pad_status = (pad_status & 0xFF3F)
-	           | ((~port & 0x30) << 2)
-	           ;
+						 | ((~port & 0x30) << 2)
+						 ;
 
 	if (padType == PAD_MD_6BTN) {
 		setSelect (HIGH);			// High again (1st time)
@@ -748,8 +860,8 @@ inline word read_md_pad () {
 		// We can read Z, Y, X & Mode
 		port = readPadPort ();
 		pad_status = (pad_status & 0xF0FF)
-				   | ((((word) ~port) & 0x000F) << 8)
-				   ;
+					 | ((((word) ~port) & 0x000F) << 8)
+					 ;
 
 		setSelect (LOW);			// Low (4th time)
 		delayMicroseconds (SIXMD_BTN_PULSE_INTERVAL);
@@ -943,9 +1055,8 @@ void setup () {
 
 	debugln (F("Starting up..."));
 
-	// Enable reset (active low)
-	pinMode (RESET_OUT_PIN, OUTPUT);
-	digitalWrite (RESET_OUT_PIN, HIGH);
+	// Enable reset
+	enableReset ();
 
 	// Setup leds
 #ifdef MODE_LED_R_PIN
@@ -954,10 +1065,6 @@ void setup () {
 
 #ifdef MODE_LED_G_PIN
 	pinMode (MODE_LED_G_PIN, OUTPUT);
-#endif
-
-#ifdef MODE_LED_B_PIN
-	pinMode (MODE_LED_B_PIN, OUTPUT);
 #endif
 
 #ifdef MODE_LED_SINGLE_PIN
@@ -992,11 +1099,10 @@ void setup () {
 
 	// Prepare pause button/line
 	pinMode (PAUSE_IN_PIN, INPUT_PULLUP);
-	pinMode (PAUSE_OUT_PIN, OUTPUT);
-	digitalWrite (PAUSE_OUT_PIN, HIGH);
+	disablePause ();
 
 	// Finally release the reset line
-	digitalWrite (RESET_OUT_PIN, HIGH);
+	disableReset ();
 }
 
 void loop () {
