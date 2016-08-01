@@ -240,6 +240,11 @@
 // Threshold to read analog inputs as HIGH
 #define ANALOG_IN_THRESHOLD 950
 
+/* Controller Type Out: this will be HIGH when a MegaDrive 3- or 6-button pad is
+ * detected. Useful for driving a multiplexer, see wiki.
+ */
+#define PAD_TYPE_PIN 5
+
 #define PAUSE_OUT_PIN 4
 #define RESET_OUT_PIN 3
 #define VIDEOMODE_PIN 2
@@ -796,6 +801,11 @@ void setup_pad () {
 	PDREG_PAD_PORT &= ~(PDREG_PAD_BITS);			// Other lines are INPUTs...
 	POREG_PAD |= PDREG_PAD_BITS;					// ... with pull-ups
 
+#ifdef PAD_TYPE_PIN
+	// Init pad type out
+	pinMode (PAD_TYPE_PIN, OUTPUT);
+#endif
+
 	// Guess pad type - Start with select line high for a while
 	setSelect (HIGH);
 	delay (10);
@@ -865,6 +875,10 @@ void setup_pad () {
 		} else {
 			debugln (F("Detected Mega Drive 6-Button pad"));
 		}
+
+#ifdef PAD_TYPE_PIN
+		digitalWrite (PAD_TYPE_PIN, HIGH);
+#endif
 	} else {
 		// This is a SMS pad - Switch SELECT to INPUT with pull-up
 		PDREG_SELECT_PORT &= ~(1 << PDREG_SELECT_BIT);
@@ -872,6 +886,10 @@ void setup_pad () {
 
 		padType = PAD_SMS;
 		debugln (F("Detected Master System pad"));
+
+#ifdef PAD_TYPE_PIN
+		digitalWrite (PAD_TYPE_PIN, LOW);
+#endif
 	}
 }
 
