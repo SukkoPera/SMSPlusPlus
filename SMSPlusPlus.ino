@@ -69,15 +69,6 @@
 #define RESET_IN_PIN 9
 #define RESET_OUT_PIN 7
 #define VIDEOMODE_PIN 5
-#define LANGUAGE_PIN 3
-
-#ifdef LOW_FLASH
-	#define MODE_LED_SINGLE_PIN 8
-#else
-	#define MODE_LED_R_PIN 8
-	#define MODE_LED_G_PIN 6
-	#define MODE_LED_B_PIN 4
-#endif
 
 #elif defined (__AVR_ATtinyX313__)
 /*
@@ -119,8 +110,8 @@
  * board type must be defined MANUALLY
  */
 
-#define ARDUINO_UNO
-//~ #define ARDUINO_NANO
+//~ #define ARDUINO_UNO
+#define ARDUINO_NANO
 //~ #define ARDUINO_STANDALONE
 
 #if defined (ARDUINO_UNO)
@@ -156,14 +147,27 @@
  *                      \_______________________/
  */
 
-//~ #define RESET_IN_PIN A3
+/* We don't have enough pins to connect both the Reset and Pause buttons. Anyway
+ * we don't really need them both. Actually we only need one of them to switch
+ * between 50/60 Hz modes from the console itself. If switching from the
+ * controller is enough, don't enable/connect any of them.
+ *
+ * By default we expect Pause to be connected, since it is the only physical
+ * button available on the SMS2. If it is connected, it can be turned into a
+ * Reset button enabling RESET_ON_PAUSE below.
+ */
+//#define RESET_IN_PIN 5
 #define PAUSE_IN_PIN 5
 #define PAUSE_OUT_PIN 4
 #define RESET_OUT_PIN 3
 #define VIDEOMODE_PIN 2
-//~ #define MODE_LED_R_PIN 0
-//~ #define MODE_LED_G_PIN 1
-//~ #define PAD_LED_PIN LED_BUILTIN
+
+/* If leds are enabled, the serial console (useful for debugging) will be
+ * disabled
+ */
+//#define MODE_LED_R_PIN 0
+//#define MODE_LED_G_PIN 1
+//#define PAD_LED_PIN 0
 
 // Controller port
 #define PDREG_PAD_PORT DDRB
@@ -197,6 +201,9 @@
 //~ #define DEBUG_PAD
 
 #elif defined (ARDUINO_NANO)
+
+#warning "Compiling for Arduino Nano"
+
 /*
  * This configuration is almost identical to that of the Uno, except that we use
  * the Nano extra pins A6 and A7 to emulate digital inputs to sample the Pause
@@ -219,22 +226,29 @@
  *                         Pause In | [X]A7              INT0/D2[X] | Video Mode
  *                              +5V | [X]5V                  GND[X] | GND
  *                                  | [ ]RST                 RST[ ] |
- *                                  | [ ]GND   5V MOSI GND   TX1[ ] |
- *                                  | [ ]Vin   [ ] [ ] [ ]   RX0[ ] |
+ *                                  | [ ]GND   5V MOSI GND   TX1[X] | (Led Green)
+ *                                  | [ ]Vin   [ ] [ ] [ ]   RX0[X] | (Led Red)
  *                                  |          [ ] [ ] [ ]          |
  *                                  |          MISO SCK RST         |
  *                                  | NANO-V3                       |
  *                                  +-------------------------------+
  */
 
-//~ #define RESET_IN_PIN A3
-#define PAUSE_IN_PIN 5
+#define RESET_IN_PIN A6
+#define PAUSE_IN_PIN A7
+
+// Threshold to read analog inputs as HIGH
+#define ANALOG_IN_THRESHOLD 950
+
 #define PAUSE_OUT_PIN 4
 #define RESET_OUT_PIN 3
 #define VIDEOMODE_PIN 2
-//~ #define MODE_LED_R_PIN 9
-//~ #define MODE_LED_G_PIN 10
-//~ #define PAD_LED_PIN LED_BUILTIN
+
+/* If leds are enabled, the serial console (useful for debugging) will be
+ * disabled
+ */
+//#define MODE_LED_R_PIN 0
+//#define MODE_LED_G_PIN 1
 
 // Controller port
 #define PDREG_PAD_PORT DDRB
@@ -247,7 +261,7 @@
 #define PDREG_SELECT_BIT DDD7
 #define POREG_SELECT PORTD
 
-// Select signal is on a different port
+// Select signal is on a different por
 #define PIREG_SELECT PIND
 
 // Traces port
@@ -260,7 +274,11 @@
 #define PDREG_TRACE7_BIT DDD6
 #define POREG_TRACE7 PORTD
 
-#define ENABLE_SERIAL_DEBUG
+#if !defined (MODE_LED_R_PIN) && !defined (MODE_LED_G_PIN)
+	#define ENABLE_SERIAL_DEBUG
+#else
+	#warning "Serial debugging disabled"
+#endif
 //~ #define DEBUG_PAD
 
 #elif defined (ARDUINO_STANDALONE)
@@ -290,7 +308,6 @@
 #define RESET_IN_PIN A0
 #define MODE_LED_R_PIN A4
 #define MODE_LED_G_PIN A5
-//~ #define PAD_LED_PIN LED_BUILTIN
 
 // Controller port
 #define PDREG_PAD_PORT DDRB
@@ -406,15 +423,18 @@ enum SmsButton {
 // Define this if your led is common-anode, comment out for common-cathode
 //#define MODE_LED_COMMON_ANODE
 
-/* Use a single led to indicate the video mode. This is enabled automatically
- * in place of the RGB led when low flash space is detected, but since this
- * does NOT disable the RGB led, it can be used together with it, provided that
- * you have a free pin.
+/* Use a single led to indicate the video mode. Since this does NOT disable the
+ * dual led, it can be used together with it, provided that you have a free pin.
  *
  * Basically, the single led is blinked 1-2 times according to which mode is set
- * (1 is 50 Hz, see enum VideoMode below).
+ * (1 is 50 Hz, see VideoMode below).
  */
-//#define MODE_LED_SINGLE_PIN 3
+//#define MODE_LED_SINGLE_PIN 1
+
+/* Use a led to indicate when a button press is detected. Useful for making sure
+ * that all button presses are registered correctly.
+ */
+//#define PAD_LED_PIN 0
 
 /* Reset the console when the pause button on the console itself is pressed.
  * This might be useful on the SMS2, since it has no RESET button. Now that you
@@ -462,6 +482,17 @@ PadType padType = PAD_SMS;
 
 VideoMode current_mode = VID_50HZ;
 
+// This will be handy
+#if (defined MODE_LED_R_PIN || defined MODE_LED_G_PIN)
+
+#define ENABLE_MODE_LED_DUAL
+
+const byte mode_led_colors[][VID_MODES_NO] = {
+	MODE_LED_50HZ_COLOR,
+	MODE_LED_60HZ_COLOR
+};
+#endif
+
 unsigned long mode_last_changed_time;
 
 
@@ -506,6 +537,39 @@ inline void disablePause () {
 }
 #endif
 
+void update_mode_leds () {
+#ifdef ENABLE_MODE_LED_DUAL
+	const byte *colors = mode_led_colors[current_mode];
+	byte c;
+
+#ifdef MODE_LED_R_PIN
+	c = colors[0];
+#ifdef MODE_LED_COMMON_ANODE
+	c = 255 - c;
+#endif
+	analogWrite (MODE_LED_R_PIN, c);
+#endif
+
+#ifdef MODE_LED_G_PIN
+	c = colors[1];
+#ifdef MODE_LED_COMMON_ANODE
+	c = 255 - c;
+#endif
+	digitalWrite (MODE_LED_G_PIN, c);
+#endif
+
+#endif  // ENABLE_MODE_LED_DUAL
+
+#ifdef MODE_LED_SINGLE_PIN
+	// WARNING: This loop must be reasonably shorter than LONGPRESS_LEN in the worst case!
+	for (int i = 0; i < current_mode + 1; ++i) {
+		digitalWrite (MODE_LED_SINGLE_PIN, LOW);
+		delay (40);
+		digitalWrite (MODE_LED_SINGLE_PIN, HIGH);
+		delay (80);
+	}
+#endif
+}
 
 void save_mode () {
 #ifdef MODE_ROM_OFFSET
@@ -521,10 +585,10 @@ void save_mode () {
 		mode_last_changed_time = 0;    // Don't save again
 
 		// Blink led to tell the user that mode was saved
-#ifdef ENABLE_MODE_LED_RGB
+#ifdef ENABLE_MODE_LED_DUAL
 		byte c = 0;
 
-#ifdef RGB_LED_COMMON_ANODE
+#ifdef MODE_LED_COMMON_ANODE
 		c = 255 - c;
 #endif
 
@@ -541,7 +605,7 @@ void save_mode () {
 
 		// Turn led back on
 		update_mode_leds ();
-#endif  // ENABLE_MODE_LED_RGB
+#endif  // ENABLE_MODE_LED_DUAL
 
 #ifdef MODE_LED_SINGLE_PIN
 		// Make one long flash
@@ -564,7 +628,7 @@ void set_mode (VideoMode m) {
 	}
 
 	current_mode = m;
-	//~ update_mode_leds ();
+	update_mode_leds ();
 
 	mode_last_changed_time = millis ();
 }
@@ -591,7 +655,15 @@ void handle_reset_button () {
 	static long last_int = 0, last_pressed = 0;
 	static unsigned int hold_cycles = 0;
 
+#ifdef ARDUINO_NANO
+	/* We use A6/A7 on this platform, which are only analog inputs, so we must
+	 * read them as such
+	 */
+	byte pressed_now = (analogRead (RESET_IN_PIN) > ANALOG_IN_THRESHOLD) ? HIGH : LOW;
+#else
 	byte pressed_now = digitalRead (RESET_IN_PIN);
+#endif
+
 	if (pressed_now != debounce_level) {
 		// Reset debouncing timer
 		last_int = millis ();
@@ -632,7 +704,13 @@ void handle_pause_button () {
 	static long last_int = 0, last_pressed = 0;
 	static unsigned int hold_cycles = 0;
 
+#ifdef ARDUINO_NANO
+	// See above
+	byte pressed_now = (analogRead (PAUSE_IN_PIN) > ANALOG_IN_THRESHOLD) ? HIGH : LOW;
+#else
 	byte pressed_now = digitalRead (PAUSE_IN_PIN);
+#endif
+
 	if (pressed_now != debounce_level) {
 		// Reset debouncing timer
 		last_int = millis ();
