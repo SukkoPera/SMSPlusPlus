@@ -634,7 +634,7 @@ void set_mode (VideoMode m) {
 }
 
 void change_mode (int increment) {
-	// This also loops in [0, MODES_NO) backwards
+	// This also loops in [0, VID_MODES_NO) backwards
 	VideoMode new_mode = static_cast<VideoMode> ((current_mode + increment + VID_MODES_NO) % VID_MODES_NO);
 	set_mode (new_mode);
 }
