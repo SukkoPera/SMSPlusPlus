@@ -693,6 +693,8 @@ void handle_reset_button () {
 
 		pressed_before = (pressed_now == LOW);
 	}
+#else
+	#warning "RESET button handling disabled"
 #endif
 }
 
@@ -744,6 +746,8 @@ void handle_pause_button () {
 
 		pressed_before = (pressed_now == LOW);
 	}
+#else
+	#warning "PAUSE button handling disabled"
 #endif
 }
 
