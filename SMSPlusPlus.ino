@@ -403,6 +403,7 @@ enum SmsButton {
 // Define this to use A as B+C. When padUseAB is enabled, C = A+B
 #define PAD_USE_THIRD_BTN_AS_2BTNS
 
+
 /*******************************************************************************
  * ADVANCED SETTINGS
  ******************************************************************************/
@@ -459,13 +460,18 @@ enum SmsButton {
  */
 #define LONGPRESS_LEN 700
 
+/* Time to ignore combos for after one has been detected. Soft of acts as a
+ * debouncing mechanism for combos.
+ */
+#define IGNORE_COMBO_MS LONGPRESS_LEN
+
 // Debounce duration for the reset/pause button
 #define DEBOUNCE_MS 20
 
 // Duration of the reset/pause pulse (milliseconds)
 #define PULSE_LEN 250
 
-// Microseconds
+// Interval between pulses for reading the 6-button pad (microseconds)
 #define SIXMD_BTN_PULSE_INTERVAL 30
 
 /*******************************************************************************
@@ -498,7 +504,7 @@ enum AutoFireRate {
 };
 
 const byte autofireHitsPerSec[AF_MODES_NO] = {
-	0,
+	0,				// Well, this is just ignored
 	3,
 	6,
 	9
@@ -1181,8 +1187,6 @@ inline byte mdPadToSms (word mdPad) {
 void cycleAutoFire (AutoFireButton& btn) {
 	btn.rate = static_cast<AutoFireRate> ((btn.rate + 1) % AF_MODES_NO);
 }
-
-#define IGNORE_COMBO_MS LONGPRESS_LEN
 
 void handle_pad () {
 	static long last_combo_time = 0;
