@@ -400,6 +400,7 @@ enum SmsButton {
 #define COMBO_AUTOFIRE_Y (MD_BTN_START | MD_BTN_Y)
 #define COMBO_AUTOFIRE_Z (MD_BTN_START | MD_BTN_Z)
 
+// Define this to use A as B+C. When padUseAB is enabled, C = A+B
 #define PAD_USE_THIRD_BTN_AS_2BTNS
 
 /*******************************************************************************
@@ -868,9 +869,11 @@ void setup_pad () {
 		setSelect (LOW);			// Low again (2nd time)
 		delayMicroseconds (SIXMD_BTN_PULSE_INTERVAL);
 
-		// We have A and Start now, see if we must enable padUseAB
+		/* We have A and Start now, see if we must enable padUseAB (that is when
+		 * A is pressed at power-up).
+		 */
 		port = readPadPort ();
-		if ((port & 0x20) == 0) {
+		if ((port & 0x10) == 0) {
 			padUseAB = true;
 		}
 
@@ -1200,37 +1203,40 @@ void handle_pad () {
 			digitalWrite (PAD_LED_PIN, pad_status);
 #endif
 
-			if ((pad_status & COMBO_TRIGGER) == COMBO_TRIGGER && millis () - last_combo_time > IGNORE_COMBO_MS) {
-				if ((pad_status & COMBO_RESET) == COMBO_RESET) {
-					debugln (F("Reset combo detected"));
-					reset_console ();
+			if (millis () - last_combo_time > IGNORE_COMBO_MS) {
+				// Look for special combos
+				if ((pad_status & COMBO_TRIGGER) == COMBO_TRIGGER) {
+					if ((pad_status & COMBO_RESET) == COMBO_RESET) {
+						debugln (F("Reset combo detected"));
+						reset_console ();
+						last_combo_time = millis ();
+					} else if ((pad_status & COMBO_50HZ) == COMBO_50HZ) {
+						debugln (F("50 Hz combo detected"));
+						set_mode (VID_50HZ);
+						last_combo_time = millis ();
+					} else if ((pad_status & COMBO_60HZ) == COMBO_60HZ) {
+						debugln (F("60 Hz combo detected"));
+						set_mode (VID_60HZ);
+						last_combo_time = millis ();
+					}
+				} else if ((pad_status & COMBO_AUTOFIRE_X) == COMBO_AUTOFIRE_X) {
+					cycleAutoFire (afStatusX);
 					last_combo_time = millis ();
-				} else if ((pad_status & COMBO_50HZ) == COMBO_50HZ) {
-					debugln (F("50 Hz combo detected"));
-					set_mode (VID_50HZ);
+				} else if ((pad_status & COMBO_AUTOFIRE_Y) == COMBO_AUTOFIRE_Y) {
+					cycleAutoFire (afStatusY);
 					last_combo_time = millis ();
-				} else if ((pad_status & COMBO_60HZ) == COMBO_60HZ) {
-					debugln (F("60 Hz combo detected"));
-					set_mode (VID_60HZ);
+				} else if ((pad_status & COMBO_AUTOFIRE_Z) == COMBO_AUTOFIRE_Z) {
+					cycleAutoFire (afStatusZ);
 					last_combo_time = millis ();
+				} else if (pad_status & MD_BTN_START) {
+					// Pause console
+					pause_console ();
 				}
-			} else if ((pad_status & COMBO_AUTOFIRE_X) == COMBO_AUTOFIRE_X && millis () - last_combo_time > IGNORE_COMBO_MS) {
-				cycleAutoFire (afStatusX);
-				last_combo_time = millis ();
-			} else if ((pad_status & COMBO_AUTOFIRE_Y) == COMBO_AUTOFIRE_Y && millis () - last_combo_time > IGNORE_COMBO_MS) {
-				cycleAutoFire (afStatusY);
-				last_combo_time = millis ();
-			} else if ((pad_status & COMBO_AUTOFIRE_Z) == COMBO_AUTOFIRE_Z && millis () - last_combo_time > IGNORE_COMBO_MS) {
-				cycleAutoFire (afStatusZ);
-				last_combo_time = millis ();
-			} else if (pad_status & MD_BTN_START) {
-				// Pause console
-				pause_console ();
-			} else {
-				// Send pad status to SMS
-				byte smsPad = mdPadToSms (pad_status);
-				write_sms_pad (smsPad);
 			}
+
+			// Send pad status to SMS
+			byte smsPad = mdPadToSms (pad_status);
+			write_sms_pad (smsPad);
 
 			break;
 		}
