@@ -1229,7 +1229,7 @@ void handle_pad () {
 					cycleAutoFire (afStatusZ);
 					last_combo_time = millis ();
 				} else if (pad_status & MD_BTN_START) {
-					// Pause console
+					// Pause console - Do not update last_combo_time here
 					pause_console ();
 				}
 			}
