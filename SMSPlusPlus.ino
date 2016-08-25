@@ -964,7 +964,7 @@ inline byte read_sms_pad () {
 	if (readPadPin7 ()) {		// Active-low: True -> No light detected
 		pad_status &= ~(SMS_BTN_TH);
 	} else {
-		pad_status |= (SMS_BTN_TH);
+		pad_status |= SMS_BTN_TH;
 	}
 #endif
 
