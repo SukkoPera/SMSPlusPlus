@@ -104,7 +104,7 @@
 		//~ #define MODE_LED_B_PIN 12
 //~ #endif
 
-#elif defined (__AVR_ATmega328__) || defined (__AVR_ATmega328P__) || defined (__AVR_ATmega168__)
+#elif defined (__AVR_ATmega328__) || defined (__AVR_ATmega328P__) || defined (__AVR_ATmega168__) || defined (__AVR_ATmega8__)
 /*
  * Arduino Uno/Nano/Standalone, but these have different configurations, so the
  * board type must be defined MANUALLY
@@ -136,7 +136,7 @@
  *                      | [ ]GND   -| D |-                    |
  *                      | [ ]Vin   -| U |-               7[X] | PD7 Pad Port Pin 7 (SMS: TH/Light Sensor - MD: Select)
  *                      |          -| I |-               6[X]~| Pad Port Trace 7
- * Pad Port Trace 1 PC0 | [X]A0    -| N |-               5[X]~| Pause In
+ * Pad Port Trace 1 PC0 | [X]A0    -| N |-               5[X]~| Pause/Reset In
  * Pad Port Trace 2 PC1 | [X]A1    -| O |-               4[X] | Pause Out
  * Pad Port Trace 3 PC2 | [X]A2     +---+           INT1/3[X]~| Reset Out
  * Pad Port Trace 4 PC3 | [X]A3                     INT0/2[X] | Video Mode
@@ -156,8 +156,9 @@
  * button available on the SMS2. If it is connected, it can be turned into a
  * Reset button enabling RESET_ON_PAUSE below.
  */
-//#define RESET_IN_PIN 5
 #define PAUSE_IN_PIN 5
+//#define RESET_IN_PIN 5
+
 #define PAUSE_OUT_PIN 4
 #define RESET_OUT_PIN 3
 #define VIDEOMODE_PIN 2
@@ -165,8 +166,8 @@
 /* If leds are enabled, the serial console (useful for debugging) will be
  * disabled
  */
-//#define MODE_LED_R_PIN 0
-//#define MODE_LED_G_PIN 1
+#define MODE_LED_R_PIN 0
+#define MODE_LED_G_PIN 1
 //#define PAD_LED_PIN 0
 
 // Controller port
@@ -180,7 +181,7 @@
 #define PDREG_SELECT_BIT DDD7
 #define POREG_SELECT PORTD
 
-// Select signal is on a different por
+// Select signal is on a different port
 #define PIREG_SELECT PIND
 
 // Traces port
@@ -206,9 +207,8 @@
 
 /*
  * This configuration is almost identical to that of the Uno, except that we use
- * the Nano extra pins A6 and A7 to emulate digital inputs to sample the Pause
- * and Reset buttons. This frees up pin 5, which we can then use as Controller
- * Type Out.
+ * the Nano extra pin A6 and A7 emulate digital inputs to sample the Pause/Reset
+ * button. This frees up pin 5, which we can then use as Controller Type Out.
  *
  *                                               +-----+
  *                                  +------------| USB |------------+
@@ -222,8 +222,8 @@
  *                 Pad Port Trace 4 | [X]A3       \_0_/       D6[X]~| Pad Port Trace 7
  *                 Pad Port Trace 6 | [X]A4/SDA               D5[X]~| Controller Type Out
  *                 Pad Port Trace 9 | [X]A5/SCL               D4[X] | Pause Out
- *                         Reset In | [X]A6              INT1/D3[X]~| Reset Out
- *                         Pause In | [X]A7              INT0/D2[X] | Video Mode
+ *                   Pause/Reset In | [X]A6              INT1/D3[X]~| Reset Out
+ *                                  | [ ]A7              INT0/D2[X] | Video Mode
  *                              +5V | [X]5V                  GND[X] | GND
  *                                  | [ ]RST                 RST[ ] |
  *                                  | [ ]GND   5V MOSI GND   TX1[X] | (Led Green)
@@ -234,8 +234,17 @@
  *                                  +-------------------------------+
  */
 
-#define RESET_IN_PIN A6
-#define PAUSE_IN_PIN A7
+/* We don't have enough pins to connect both the Reset and Pause buttons. Anyway
+ * we don't really need them both. Actually we only need one of them to switch
+ * between 50/60 Hz modes from the console itself. If switching from the
+ * controller is enough, don't enable/connect any of them.
+ *
+ * By default we expect Pause to be connected, since it is the only physical
+ * button available on the SMS2. If it is connected, it can be turned into a
+ * Reset button enabling RESET_ON_PAUSE below.
+ */
+#define PAUSE_IN_PIN A6
+//~ #define RESET_IN_PIN A6
 
 // Threshold to read analog inputs as HIGH
 #define ANALOG_IN_THRESHOLD 950
@@ -252,8 +261,9 @@
 /* If leds are enabled, the serial console (useful for debugging) will be
  * disabled
  */
-//#define MODE_LED_R_PIN 0
-//#define MODE_LED_G_PIN 1
+#define MODE_LED_R_PIN 0
+#define MODE_LED_G_PIN 1
+//#define PAD_LED_PIN 0
 
 // Controller port
 #define PDREG_PAD_PORT DDRB
@@ -1297,8 +1307,15 @@ void setup () {
 	setup_traces ();
 
 	// Prepare pause button/line
+#if defined (PAUSE_IN_PIN) && !defined (ARDUINO_NANO)
 	pinMode (PAUSE_IN_PIN, INPUT_PULLUP);
+#endif
 	disablePause ();
+
+	// Prepare reset button
+#if defined (RESET_IN_PIN) && !defined (ARDUINO_NANO)
+	pinMode (RESET_IN_PIN, INPUT_PULLUP);
+#endif
 
 	// Finally release the reset line
 	disableReset ();
