@@ -31,88 +31,14 @@
  * PLATFORM SELECTION
  ******************************************************************************/
 
-// Check if we should disable some features because of low flash space
-//~ #if FLASHEND < 2048
-		//~ /* We only have 2 kb flash, let's take special measures:
-		 //~ * - Only use a single flashing led to signal current mode
-		 //~ * - On ATtiny24 we also always save video mode when changed, without
-		 //~ *   checking if it has actually changed: this will wear out EEPROM a bit
-		 //~ *   more quickly but it will still take ages ;)
-		 //~ */
-		//~ #warning Low flash space mode enabled
-		//~ #define LOW_FLASH
-//~ #endif
+#if defined (__AVR_ATmega328__) || defined (__AVR_ATmega328P__) || defined (__AVR_ATmega168__) || defined (__AVR_ATmega8__)
 
-
-#if defined (__AVR_ATtinyX61__)
-/*
- * On ATtinyX61's all features are supported. We even read all buttons with a
- * single instruction.
- *
- * The connection layout puts the SELECT signal on the INT1 pin. This will
- * probably be needed if we ever want to read 6-button pads. LED is connected to
- * PWM-capable pins.
- *
- *                    ,-----_-----.
- *           Reset In |1   9  0 20| Pad Port Pin 1
- *            LED Red |2   8  1 19| Pad Port Pin 2
- *          Reset Out |3   7  2 18| Pad Port Pin 7
- *          LED Green |4   6 14 17| Pad Port Pin 3
- *                +5V |5        16| GND
- *                GND |6        15| +5V
- * JP3/4 (Video Mode) |7   5 10 14| Pad Port Pin 4
- *           LED Blue |8   4 11 13| Pad Port Pin 6
- *   JP1/2 (Language) |9   3 12 12| Pad Port Pin 9
- *                    |10(15)13 11|
- *                    `-----------'
- */
-#define RESET_IN_PIN 9
-#define RESET_OUT_PIN 7
-#define VIDEOMODE_PIN 5
-
-#elif defined (__AVR_ATtinyX313__)
-/*
- * On ATtinyX13's all features are supported. We even read all buttons with a
- * single instruction.
- *
- * Again, the connection layout puts the SELECT signal on the INT1 pin. LED is
- * connected to PWM-capable pins.
- *
- *                     ,-----_-----.
- *                     |1   9  0 20| +5V
- *      Pad Port Pin 3 |2   8  1 19| Video Mode
- *      Pad Port Pin 4 |3   7  2 18| Pause Out
- *          [Reset In] |4   6 14 17| Reset Out
- *            Pause In |5        16| Pad Port Trace 7
- *      Pad Port Pin 6 |6        15| Pad Port Trace 9
- *      Pad Port Pin 9 |7   5 10 14| Pad Port Trace 6
- *      Pad Port Pin 7 |8   4 11 13| Pad Port Trace 4
- *  Multiplexer Select |9   3 12 12| Pad Port Trace 3
- *                 GND |10(15)13 11| Led
- *                     `-----------'
- */
-//~ #define RESET_IN_PIN 13
-//~ #define RESET_OUT_PIN 14
-//~ #define VIDEOMODE_PIN 16
-//~ #define LANGUAGE_PIN 15
-
-//~ #ifdef LOW_FLASH
-		//~ #define MODE_LED_SINGLE_PIN 10
-//~ #else
-		//~ #define MODE_LED_R_PIN 10
-		//~ #define MODE_LED_G_PIN 11
-		//~ #define MODE_LED_B_PIN 12
-//~ #endif
-
-#elif defined (__AVR_ATmega328__) || defined (__AVR_ATmega328P__) || defined (__AVR_ATmega168__) || defined (__AVR_ATmega8__)
 /*
  * Arduino Uno/Nano/Standalone, but these have different configurations, so the
  * board type must be defined MANUALLY
  */
-
-#define ARDUINO_UNO
-//~ #define ARDUINO_NANO
-//~ #define ARDUINO_STANDALONE
+//~ #define ARDUINO_UNO
+#define ARDUINO_NANO
 
 #if defined (ARDUINO_UNO)
 
@@ -159,6 +85,7 @@
 #define PAUSE_IN_PIN 5
 //#define RESET_IN_PIN 5
 
+// Other pin definitions
 #define PAUSE_OUT_PIN 4
 #define RESET_OUT_PIN 3
 #define VIDEOMODE_PIN 2
@@ -168,7 +95,6 @@
  */
 #define MODE_LED_R_PIN 0
 #define MODE_LED_G_PIN 1
-//#define PAD_LED_PIN 0
 
 // Controller port
 #define PDREG_PAD_PORT DDRB
@@ -207,7 +133,7 @@
 
 /*
  * This configuration is almost identical to that of the Uno, except that we use
- * the Nano extra pin A6 and A7 emulate digital inputs to sample the Pause/Reset
+ * the Nano extra pin A6 to emulate a digital input to sample the Pause/Reset
  * button. This frees up pin 5, which we can then use as Controller Type Out.
  *
  *                                               +-----+
@@ -263,7 +189,6 @@
  */
 #define MODE_LED_R_PIN 0
 #define MODE_LED_G_PIN 1
-//#define PAD_LED_PIN 0
 
 // Controller port
 #define PDREG_PAD_PORT DDRB
@@ -294,53 +219,10 @@
 #else
 	#warning "Serial debugging disabled"
 #endif
-//~ #define DEBUG_PAD
 
-#elif defined (ARDUINO_STANDALONE)
-/*
- *                                                    ,-----_-----.
- *                                                PC6 |1     A5 28| PC5 Led Green
- *                               Pad Port Trace 1 PD0 |2   0 A4 27| PC4 Led Red
- *                               Pad Port Trace 2 PD1 |3   1 A3 26| PC3 Pause Out
- *                               Pad Port Trace 3 PD2 |4   2 A2 25| PC2 Pause In
- *                               Pad Port Trace 4 PD3 |5   3 A1 24| PC1 Reset Out
- *                               Pad Port Trace 6 PD4 |6   4 A0 23| PC0 Reset In
- *                                                +5V |7        22| GND
- *                                                GND |8        21|
- * Pad Port Pin 7 (TH - Light Sensor - MD Select) PB6 |9        20| +5V
- *                            Controller Type Out PB7 |10    13 19| PB5 Pad Port Pin 9 (TR - Button 2)
- *                               Pad Port Trace 9 PD5 |11  5 12 18| PB4 Pad Port Pin 6 (TL - Button 1/Trigger)
- *                               Pad Port Trace 7 PD6 |12  6 11 17| PB3 Pad Port Pin 4 (Right)
- *                                 Video Mode Out PD7 |13  7 10 16| PB2 Pad Port Pin 3 (Left)
- *                            Pad Port Pin 1 (Up) PB0 |14  8  9 15| PB1 Pad Port Pin 2 (Down)
- *                                                    `-----------'
- */
-
-#define VIDEOMODE_PIN 7
-#define PAUSE_OUT_PIN A3
-#define PAUSE_IN_PIN A2
-#define RESET_OUT_PIN A1
-#define RESET_IN_PIN A0
-#define MODE_LED_R_PIN A4
-#define MODE_LED_G_PIN A5
-
-// Controller port
-#define PDREG_PAD_PORT DDRB
-#define PDREG_PAD_BITS ((1 << DDB5) | (1 << DDB4) | (1 << DDB3) | (1 << DDB2) | (1 << DDB1) | (1 << DDB0))
-#define PIREG_PAD PINB
-#define POREG_PAD PORTB
-
-// Select signal
-#define PDREG_SELECT_PORT DDRB
-#define PDREG_SELECT_BIT DDB6
-#define POREG_SELECT PORTB
-
-// Traces port
-#define PDREG_TRACES_PORT DDRC
-#define PDREG_TRACES_BITS ((1 << DDD6) | (1 << DDD5) | (1 << DDD4) | (1 << DDD3) | (1 << DDD2) | (1 << DDD1) | (1 << DDD0))
-#define POREG_TRACES PORTC
-
-#endif	// ARDUINO_xxxx
+#else
+	#error "Unsupported Arduino platform!"
+#endif
 
 #else
 	#error "Unsupported platform!"
@@ -398,19 +280,18 @@ enum SmsButton {
  */
 #define COMBO_RESET (MD_BTN_A | MD_BTN_C)
 
-/* Combos for video modes
- */
+// Combos for video modes
 #define COMBO_50HZ MD_BTN_LEFT
 #define COMBO_60HZ MD_BTN_RIGHT
 
-/* Combos to switch among autofire modes. These do NOT have to be in addition to
+/* Combos to switch among autofire modes. These are NOT in addition to
  * TRIGGER_COMBO.
  */
 #define COMBO_AUTOFIRE_X (MD_BTN_START | MD_BTN_X)
 #define COMBO_AUTOFIRE_Y (MD_BTN_START | MD_BTN_Y)
 #define COMBO_AUTOFIRE_Z (MD_BTN_START | MD_BTN_Z)
 
-// Define this to use A as B+C. When padUseAB is enabled, C = A+B
+// Define this to use A as B+C. When padUseAB is enabled, C = A+B.
 #define PAD_USE_THIRD_BTN_AS_2BTNS
 
 
@@ -457,6 +338,11 @@ enum SmsButton {
  * that all button presses are registered correctly.
  */
 //#define PAD_LED_PIN 0
+
+// Print the controller status on serial. Only useful for debugging.
+#ifdef ENABLE_SERIAL_DEBUG
+//~ #define DEBUG_PAD
+#endif
 
 /* Reset the console when the pause button on the console itself is pressed.
  * This might be useful on the SMS2, since it has no RESET button. Now that you
