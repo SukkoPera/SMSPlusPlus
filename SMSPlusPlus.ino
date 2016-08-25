@@ -1150,7 +1150,7 @@ void handle_pad () {
 
 void setup () {
 #ifdef ENABLE_SERIAL_DEBUG
-	Serial.begin (9600);
+	Serial.begin (115200);
 #endif
 
 	debugln (F("Starting up..."));
