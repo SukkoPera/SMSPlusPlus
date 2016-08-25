@@ -34,7 +34,7 @@
 #if defined (__AVR_ATmega328__) || defined (__AVR_ATmega328P__) || defined (__AVR_ATmega168__) || defined (__AVR_ATmega8__)
 
 /*
- * Arduino Uno/Nano/Standalone, but these have different configurations, so the
+ * Arduino Uno/Nano, but these have different configurations, so the
  * board type must be defined MANUALLY
  */
 //~ #define ARDUINO_UNO
@@ -136,6 +136,9 @@
  * the Nano extra pin A6 to emulate a digital input to sample the Pause/Reset
  * button. This frees up pin 5, which we can then use as Controller Type Out.
  *
+ * Note that you will have to install an external pull-up resistor (1k-10k
+ * should be fine) to properly register button presses this way.
+ *
  *                                               +-----+
  *                                  +------------| USB |------------+
  *                                  |            +-----+            |
@@ -168,6 +171,8 @@
  * By default we expect Pause to be connected, since it is the only physical
  * button available on the SMS2. If it is connected, it can be turned into a
  * Reset button enabling RESET_ON_PAUSE below.
+ *
+ * REMEMBER THE EXTERNAL PULL-UP!
  */
 #define PAUSE_IN_PIN A6
 //~ #define RESET_IN_PIN A6
