@@ -45,32 +45,31 @@
 #warning "Compiling for Arduino Uno"
 
 /*
- *
- *                      +----[PWR]-------------------| USB |--+
- *                      |                            +-----+  |
- *                      |         GND/RST2  [ ][ ]            |
- *                      |       MOSI2/SCK2  [ ][ ]  A5/SCL[ ] |
- *                      |          5V/MISO2 [ ][ ]  A4/SDA[ ] |
- *                      |                             AREF[ ] |
- *                      |                              GND[ ] |
- *                      | [ ]N/C                    SCK/13[X] | PB5 Pad Port Pin 9 (SMS: TR/B2 - MD: C/Start)
- *                      | [ ]IOREF                 MISO/12[X] | PB4 Pad Port Pin 6 (SMS: TL/B1/Trigger - MD: B/A)
- *                      | [ ]RST                   MOSI/11[X]~| PB3 Pad Port Pin 4 (SMS: Right - MD: Right/Mode)
- *                      | [ ]3V3    +---+               10[X]~| PB2 Pad Port Pin 3 (SMS: Left - MD: Left/X)
- *                  +5V | [X]5v    -| A |-               9[X]~| PB1 Pad Port Pin 2 (SMS: Down - MD: Down/Y)
- *                  GND | [X]GND   -| R |-               8[X] | PB0 Pad Port Pin 1 (SMS: Up - MD: Up/Z)
- *                      | [ ]GND   -| D |-                    |
- *                      | [ ]Vin   -| U |-               7[X] | PD7 Pad Port Pin 7 (SMS: TH/Light Sensor - MD: Select)
- *                      |          -| I |-               6[X]~| Pad Port Trace 7
- * Pad Port Trace 1 PC0 | [X]A0    -| N |-               5[X]~| Pause/Reset In
- * Pad Port Trace 2 PC1 | [X]A1    -| O |-               4[X] | Pause Out
- * Pad Port Trace 3 PC2 | [X]A2     +---+           INT1/3[X]~| Reset Out
- * Pad Port Trace 4 PC3 | [X]A3                     INT0/2[X] | Video Mode
- * Pad Port Trace 6 PC4 | [X]A4/SDA  RST SCK MISO     TX>1[ ] | (Led Green)
- * Pad Port Trace 9 PC5 | [X]A5/SCL  [ ] [ ] [ ]      RX<0[ ] | (Led Red)
- *                      |            [ ] [ ] [ ]              |
- *                      |  UNO_R3    GND MOSI 5V  ____________/
- *                      \_______________________/
+ *                    +----[PWR]-------------------| USB |--+
+ *                    |                            +-----+  |
+ *                    |         GND/RST2  [ ][ ]            |
+ *                    |       MOSI2/SCK2  [ ][ ]  A5/SCL[ ] |
+ *                    |          5V/MISO2 [ ][ ]  A4/SDA[ ] |
+ *                    |                             AREF[ ] |
+ *                    |                              GND[ ] |
+ *                    | [ ]N/C                    SCK/13[X] | Pad Port Trace 9
+ *                    | [ ]IOREF                 MISO/12[X] | Pad Port Trace 6
+ *                    | [ ]RST                   MOSI/11[X]~| Pad Port Trace 4
+ *                    | [ ]3V3    +---+               10[X]~| Pad Port Trace 3
+ *                +5V | [X]5v    -| A |-               9[X]~| Pad Port Trace 2
+ *                GND | [X]GND   -| R |-               8[X] | Pad Port Trace 1
+ *                    | [ ]GND   -| D |-                    |
+ *                    | [ ]Vin   -| U |-               7[X] | Pad Port Trace 7
+ *                    |          -| I |-               6[X]~| Pad Port Pin 7
+ * Pad Port Pin 1 PC0 | [X]A0    -| N |-               5[X]~| Pause/Reset In
+ * Pad Port Pin 2 PC1 | [X]A1    -| O |-               4[X] | Pause Out
+ * Pad Port Pin 3 PC2 | [X]A2     +---+           INT1/3[X]~| Reset Out
+ * Pad Port Pin 4 PC3 | [X]A3                     INT0/2[X] | Video Mode
+ * Pad Port Pin 6 PC4 | [X]A4/SDA  RST SCK MISO     TX>1[ ] | (Led Green)
+ * Pad Port Pin 9 PC5 | [X]A5/SCL  [ ] [ ] [ ]      RX<0[ ] | (Led Red)
+ *                    |            [ ] [ ] [ ]              |
+ *                    |  UNO_R3    GND MOSI 5V  ____________/
+ *                    \_______________________/
  */
 
 /* We don't have enough pins to connect both the Reset and Pause buttons. Anyway
@@ -97,27 +96,27 @@
 #define MODE_LED_G_PIN 1
 
 // Controller port
-#define PDREG_PAD_PORT DDRB
-#define PDREG_PAD_BITS ((1 << DDB5) | (1 << DDB4) | (1 << DDB3) | (1 << DDB2) | (1 << DDB1) | (1 << DDB0))
-#define PIREG_PAD PINB
-#define POREG_PAD PORTB
+#define PDREG_PAD_PORT DDRC
+#define PDREG_PAD_BITS ((1 << DDC5) | (1 << DDC4) | (1 << DDC3) | (1 << DDC2) | (1 << DDC1) | (1 << DDC0))
+#define PIREG_PAD PINC
+#define POREG_PAD PORTC
 
 // Select signal
 #define PDREG_SELECT_PORT DDRD
-#define PDREG_SELECT_BIT DDD7
+#define PDREG_SELECT_BIT DDD6
 #define POREG_SELECT PORTD
 
 // Select signal is on a different port
 #define PIREG_SELECT PIND
 
 // Traces port
-#define PDREG_TRACES_PORT DDRC
-#define PDREG_TRACES_BITS ((1 << DDC5) | (1 << DDC4) | (1 << DDC3) | (1 << DDC2) | (1 << DDC1) | (1 << DDC0))
-#define POREG_TRACES PORTC
+#define PDREG_TRACES_PORT DDRB
+#define PDREG_TRACES_BITS ((1 << DDB5) | (1 << DDB4) | (1 << DDB3) | (1 << DDB2) | (1 << DDB1) | (1 << DDB0))
+#define POREG_TRACES PORTB
 
 // Select trace is on a different port
 #define PDREG_TRACE7_PORT DDRD
-#define PDREG_TRACE7_BIT DDD6
+#define PDREG_TRACE7_BIT DDD7
 #define POREG_TRACE7 PORTD
 
 #if !defined (MODE_LED_R_PIN) && !defined (MODE_LED_G_PIN)
@@ -139,28 +138,28 @@
  * Note that you will have to install an external pull-up resistor (1k-10k
  * should be fine) to properly register button presses this way.
  *
- *                                               +-----+
- *                                  +------------| USB |------------+
- *                                  |            +-----+            |
- *                   Pad Port Pin 9 | [X]D13/SCK        MISO/D12[X] | Pad Port Pin 6
- *                                  | [ ]3.3V           MOSI/D11[X]~| Pad Port Pin 4
- *                                  | [ ]V.ref     ___    SS/D10[X]~| Pad Port Pin 3
- *                 Pad Port Trace 1 | [X]A0       / N \       D9[X]~| Pad Port Pin 2
- *                 Pad Port Trace 2 | [X]A1      /  A  \      D8[X] | Pad Port Pin 1
- *                 Pad Port Trace 3 | [X]A2      \  N  /      D7[X] | Pad Port Pin 7
- *                 Pad Port Trace 4 | [X]A3       \_0_/       D6[X]~| Pad Port Trace 7
- *                 Pad Port Trace 6 | [X]A4/SDA               D5[X]~| Controller Type Out
- *                 Pad Port Trace 9 | [X]A5/SCL               D4[X] | Pause Out
- *                   Pause/Reset In | [X]A6              INT1/D3[X]~| Reset Out
- *                                  | [ ]A7              INT0/D2[X] | Video Mode
- *                              +5V | [X]5V                  GND[X] | GND
- *                                  | [ ]RST                 RST[ ] |
- *                                  | [ ]GND   5V MOSI GND   TX1[X] | (Led Green)
- *                                  | [ ]Vin   [ ] [ ] [ ]   RX0[X] | (Led Red)
- *                                  |          [ ] [ ] [ ]          |
- *                                  |          MISO SCK RST         |
- *                                  | NANO-V3                       |
- *                                  +-------------------------------+
+ *                               +-----+
+ *                  +------------| USB |------------+
+ *                  |            +-----+            |
+ * Pad Port Trace 9 | [X]D13/SCK        MISO/D12[X] | Pad Port Trace 6
+ *                  | [ ]3.3V           MOSI/D11[X]~| Pad Port Trace 4
+ *                  | [ ]V.ref     ___    SS/D10[X]~| Pad Port Trace 3
+ *   Pad Port Pin 1 | [X]A0       / N \       D9[X]~| Pad Port Trace 2
+ *   Pad Port Pin 2 | [X]A1      /  A  \      D8[X] | Pad Port Trace 1
+ *   Pad Port Pin 3 | [X]A2      \  N  /      D7[X] | Pad Port Trace 7
+ *   Pad Port Pin 4 | [X]A3       \_0_/       D6[X]~| Pad Port Pin 7
+ *   Pad Port Pin 6 | [X]A4/SDA               D5[X]~| Controller Type Out
+ *   Pad Port Pin 9 | [X]A5/SCL               D4[X] | Pause Out
+ *   Pause/Reset In | [X]A6              INT1/D3[X]~| Reset Out
+ *                  | [ ]A7              INT0/D2[X] | Video Mode
+ *              +5V | [X]5V                  GND[X] | GND
+ *                  | [ ]RST                 RST[ ] |
+ *                  | [ ]GND   5V MOSI GND   TX1[X] | (Led Green)
+ *                  | [ ]Vin   [ ] [ ] [ ]   RX0[X] | (Led Red)
+ *                  |          [ ] [ ] [ ]          |
+ *                  |          MISO SCK RST         |
+ *                  | NANO-V3                       |
+ *                  +-------------------------------+
  */
 
 /* We don't have enough pins to connect both the Reset and Pause buttons. Anyway
@@ -196,27 +195,27 @@
 #define MODE_LED_G_PIN 1
 
 // Controller port
-#define PDREG_PAD_PORT DDRB
-#define PDREG_PAD_BITS ((1 << DDB5) | (1 << DDB4) | (1 << DDB3) | (1 << DDB2) | (1 << DDB1) | (1 << DDB0))
-#define PIREG_PAD PINB
-#define POREG_PAD PORTB
+#define PDREG_PAD_PORT DDRC
+#define PDREG_PAD_BITS ((1 << DDC5) | (1 << DDC4) | (1 << DDC3) | (1 << DDC2) | (1 << DDC1) | (1 << DDC0))
+#define PIREG_PAD PINC
+#define POREG_PAD PORTC
 
 // Select signal
 #define PDREG_SELECT_PORT DDRD
-#define PDREG_SELECT_BIT DDD7
+#define PDREG_SELECT_BIT DDD6
 #define POREG_SELECT PORTD
 
 // Select signal is on a different por
 #define PIREG_SELECT PIND
 
 // Traces port
-#define PDREG_TRACES_PORT DDRC
-#define PDREG_TRACES_BITS ((1 << DDC5) | (1 << DDC4) | (1 << DDC3) | (1 << DDC2) | (1 << DDC1) | (1 << DDC0))
-#define POREG_TRACES PORTC
+#define PDREG_TRACES_PORT DDRB
+#define PDREG_TRACES_BITS ((1 << DDB5) | (1 << DDB4) | (1 << DDB3) | (1 << DDB2) | (1 << DDB1) | (1 << DDB0))
+#define POREG_TRACES PORTB
 
 // Select trace is on a different port
 #define PDREG_TRACE7_PORT DDRD
-#define PDREG_TRACE7_BIT DDD6
+#define PDREG_TRACE7_BIT DDD7
 #define POREG_TRACE7 PORTD
 
 #if !defined (MODE_LED_R_PIN) && !defined (MODE_LED_G_PIN)
