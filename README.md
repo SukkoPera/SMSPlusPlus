@@ -2,7 +2,7 @@
 
 **SMS++** is a modchip for the **Sega Master System** gaming console. It is basically a port of my [MegaDrive++](https://github.com/SukkoPera/MegaDrivePlusPlus) project.
 
-Since the Master System controller only has a few buttons, it makes it impossible to perform "special combos" to control the modchip features. Thus, SMS++ requires the use of an unmodified **Mega Drive Control Pad**, either 3- or 6-button.
+Since the Master System controller only has a few buttons, it makes it impossible to perform "special combos" to control the modchip features. Thus, SMS++ requires the use of an unmodified **Mega Drive/Genesis Control Pad**, either 3- or 6-button.
 
 SMS++ has the following features:
 
